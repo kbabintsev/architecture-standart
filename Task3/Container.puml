@@ -1,0 +1,63 @@
+@startuml
+title Диаграмма контейнеров банка Стандарт
+
+top to bottom direction
+
+!RELATIVE_INCLUDE ?= "relative/absolute"
+!include ../includes/C4_Container.puml
+
+Person(newClient, "Новый клиент", "Потенциальный клиент банка Стандарт")
+Person(client, "Клиент", "Клиент банка Стандарт")
+Person(callMan, "Специалист кол-центра", "Специалист кол-центра банка Стандарт")
+Person(frontMan, "Специалист фронт-офиса", "Специалист фронт-офиса банка Стандарт")
+Person(backMan, "Специалист бэк-офиса", "Специалист бэк-офиса банка Стандарт")
+System(BankStandartSystem, "Банк Стандарт", "Система банка Стандарт предоставляет банковские услуги клиентам")
+System_Ext(TelecomProvider, "Телеком-оператор", "Внешний оператор по отправке СМС")
+
+Container_Boundary(BankStandartSystem, "Банк Стандарт") {
+  Container(ClientWebsite, "Сайт (клиент)", "React.js", "Публичный сайт банка (клиент)")
+  Container(ServiceWebsite, "Сайт (сервис)", "PHP", "Публичный сайт банка (сервис)")
+  Container(ClientCallCenter, "Система кол-центра (клиент)", "React.js", "Система кол-центра (клиент)")
+  Container(BackendCallCenter, "Система кол-центра (бэкенд)", "Java Spring Boot", "Система кол-центра (бэкенд)")
+  ContainerDb(DbCallCenter, "Система кол-центра (СУБД)", "PostgreSQL", "Система кол-центра (СУБД)")
+  Container(ServiceTelecomProvider, "СМС-шлюз телеком-оператора", "", "СМС-шлюз телеком-оператора")
+  Container(SystemAbs, "АБС", "Delphi", "АБС, десктопный клиент Delphi")
+  ContainerDb(DbAbs, "АБС (СУБД)", "Oracle", "АБС, СУБД на Oracle")
+  Container(ClientInternetBank, "Интернет-банк (клиент)", "React.js?", "Интернет-банк (клиент)")
+  Container(InternetBank, "Интернет-банк", "ASP.NET Web API", "Интернет-банк")
+  ContainerDb(DbInternetBank, "Интернет-банк (СУБД)", "MS SQL", "Интернет-банк, СУБД на MS SQL")
+  Container(ApiGatewayNew, "API Gateway (new)", "Kong", "API Gateway для управления трафиком, безопасности и мониторинга")
+  Container(ServiceDepositNew, "Сервис депозитов (new)", "ASP.NET Web API", "Новый сервис депозитов в рамках новой микросервисной архитектуры")
+  ContainerDb(DbServiceDepositNew, "СУБД сервиса депозитов (new)", "MS SQL", "MS SQL СУБД сервиса депозитов")
+  ContainerQueue(MessageBrokerNew, "Брокер сообщений (new)", "Kafka", "Брокер сообщений Kafka")
+  Container(ServiceRateNew, "Сервис расчета ставок (new)", "ASP.NET Web API", "Новый сервис расчета ставок в рамках новой микросервисной архитектуры")
+  ContainerDb(DbServiceRateNew, "СУБД сервиса расчета ставок (new)", "MS SQL", "MS SQL СУБД сервиса расчета ставок")
+}
+
+Rel(ServiceTelecomProvider, TelecomProvider, "Взаимодействует с телеком-оператором")
+Rel(SystemAbs, DbAbs, "Считывает и записывает данные, вызывает PL-SQL процедуры бизнес-логики")
+Rel(SystemAbs, ServiceTelecomProvider, "Отправляет СМС-уведомления")
+Rel(ClientCallCenter, BackendCallCenter, "Взаимодействует с бэкендом")
+Rel(BackendCallCenter, DbCallCenter, "Считывает и записывает данные колл-центра")
+Rel(ClientWebsite, ServiceWebsite, "Взаимодействует с бэкендом")
+Rel(ClientInternetBank, ApiGatewayNew, "Банковские операции")
+Rel(ApiGatewayNew, InternetBank, "Банковские операции")
+Rel(ApiGatewayNew, ServiceDepositNew, "Банковские операции")
+Rel(InternetBank, DbInternetBank, "Считывает и записывает данные интернет-банка")
+Rel(InternetBank, DbAbs, "Проведение платежей и открытия текущих счетов")
+Rel(ServiceDepositNew, DbServiceDepositNew, "Считывает и записывает данные депозитов")
+Rel(SystemAbs, ApiGatewayNew, "Открытие новых депозитов, расчет и считывание ставок")
+Rel(ApiGatewayNew, ServiceRateNew, "Расчет ставок")
+Rel(ServiceRateNew, MessageBrokerNew, "Публикация ставок в топик")
+Rel(ServiceRateNew, DbServiceRateNew, "Считывает и записывает данные ставок")
+Rel(ClientWebsite, ApiGatewayNew, "Cчитывание ставок")
+Rel(ApiGatewayNew, MessageBrokerNew, "Cчитывание ставок")
+Rel(ServiceDepositNew, MessageBrokerNew, "Cчитывание ставок")
+
+Rel(newClient, ClientWebsite, "Просматривает публичную информацию, оставляет заявки")
+Rel(client, ClientInternetBank, "Работает с банковскими услугами")
+Rel(callMan, ClientCallCenter, "Принимает звонки, регистрирует и работает с обращениями")
+Rel(frontMan, SystemAbs, "Совершает операции с банковской системой для фронт-офиса")
+Rel(backMan, SystemAbs, "Совершает операции с банковской системой для бэк-офиса")
+
+@enduml
