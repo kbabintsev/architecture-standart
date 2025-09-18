@@ -1,0 +1,24 @@
+@startuml
+
+title Диаграмма контекста банка Стандарт
+
+!RELATIVE_INCLUDE ?= "relative/absolute"
+!include ../includes/C4_Context.puml
+
+Person(newClient, "Новый клиент", "Потенциальный клиент банка Стандарт")
+Person(client, "Клиент", "Клиент банка Стандарт")
+Person(callMan, "Специалист кол-центра", "Специалист кол-центра банка Стандарт")
+Person(frontMan, "Специалист фронт-офиса", "Специалист фронт-офиса банка Стандарт")
+Person(backMan, "Специалист бэк-офиса", "Специалист бэк-офиса банка Стандарт")
+
+System(BankStandartSystem, "Банк Стандарт", "Система банка Стандарт предоставляет банковские услуги клиентам")
+System_Ext(TelecomProvider, "Телеком-оператор", "Внешний оператор по отправке СМС")
+
+Rel(newClient, BankStandartSystem, "Просматривает публичную информацию, оставляет заявки")
+Rel(client, BankStandartSystem, "Получает банковские услуги")
+Rel(callMan, BankStandartSystem, "Регистрирует и работает с обращениями в кол-центр")
+Rel(frontMan, BankStandartSystem, "Производит операции для фронт-офиса")
+Rel(backMan, BankStandartSystem, "Обрабатывает заявки")
+Rel(BankStandartSystem, TelecomProvider, "Отправка СМС-оповещений")
+
+@enduml

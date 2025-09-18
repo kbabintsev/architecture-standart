@@ -1,0 +1,41 @@
+@startuml
+title Диаграмма контейнеров банка Стандарт
+
+top to bottom direction
+
+!RELATIVE_INCLUDE ?= "relative/absolute"
+!include ../includes/C4_Container.puml
+
+Person(client, "Клиент", "Клиент банка Стандарт")
+Person(callMan, "Специалист кол-центра", "Специалист кол-центра банка Стандарт")
+Person(callManExt, "Специалист партнерского кол-центра", "Специалист партнерского кол-центра")
+System(BankStandartSystem, "Банк Стандарт", "Система банка Стандарт предоставляет банковские услуги клиентам")
+System_Ext(PartnerCallCenterSystem, "Система партнерского кол-центра", "Внешняя cистема партнерского кол-центра")
+System_Ext(S3, "Файловое облачное хранилище", "Внешнее файловое облачное хранилище")
+
+Container_Boundary(BankStandartSystem, "Банк Стандарт") {
+  Container(ClientCallCenter, "Система кол-центра (клиент)", "React.js", "Система кол-центра (клиент)")
+  Container(BackendCallCenter, "Система кол-центра (бэкенд)", "Java Spring Boot", "Система кол-центра (бэкенд)")
+  ContainerDb(DbCallCenter, "Система кол-центра (СУБД)", "PostgreSQL", "Система кол-центра (СУБД)")
+  Container(ApiGatewayNew, "API Gateway (new)", "Kong", "API Gateway для управления трафиком, безопасности и мониторинга")
+  ContainerQueue(MessageBrokerNew, "Брокер сообщений (new)", "Kafka", "Брокер сообщений Kafka")
+  Container(ServiceRateNew, "Сервис расчета ставок (new)", "ASP.NET Web API", "Новый сервис расчета ставок в рамках новой микросервисной архитектуры")
+  ContainerDb(DbServiceRateNew, "СУБД сервиса расчета ставок (new)", "MS SQL", "MS SQL СУБД сервиса расчета ставок")
+}
+
+Rel(ClientCallCenter, BackendCallCenter, "Взаимодействует с бэкендом")
+Rel(BackendCallCenter, DbCallCenter, "Считывает и записывает данные колл-центра")
+Rel(ApiGatewayNew, ServiceRateNew, "Расчет ставок")
+Rel(ServiceRateNew, MessageBrokerNew, "Публикация ставок в топик")
+Rel(ServiceRateNew, S3, "Публикация ставок в облачное хранилище")
+Rel(ServiceRateNew, DbServiceRateNew, "Считывает и записывает данные ставок")
+Rel(BackendCallCenter, ApiGatewayNew, "Cчитывание ставок")
+Rel(ApiGatewayNew, MessageBrokerNew, "Cчитывание ставок")
+
+Rel(client, BankStandartSystem, "Звонит в поддержку")
+Rel(client, PartnerCallCenterSystem, "Звонит в поддержку")
+Rel(callMan, ClientCallCenter, "Принимает звонки, регистрирует и работает с обращениями")
+Rel(callManExt, PartnerCallCenterSystem, "Регистрирует и работает с обращениями в кол-центр")
+Rel(callManExt, S3, "Просматривает актуальные ставки")
+
+@enduml
